@@ -1,0 +1,111 @@
+Task-1
+
+USE DATABASE PK_INEURON;
+
+CREATE TABLE shopping_history
+(
+  product varchar(30) not null,
+  quantity int not null,
+  unit_price int not null
+);
+SELECT count(*) FROM "PK_INEURON"."PUBLIC"."SHOPPING_HISTORY";
+INSERT INTO shopping_history VALUES('milk',3,10);
+INSERT INTO shopping_history VALUES('bread',7,3);
+INSERT INTO shopping_history VALUES('bread',5,2);
+INSERT INTO shopping_history VALUES('curd',4,15);
+INSERT INTO shopping_history VALUES('ghee',6,25);
+INSERT INTO shopping_history VALUES('milk',8,14);
+INSERT INTO shopping_history VALUES('cheese',5,30);
+INSERT INTO shopping_history VALUES('curd',2,20);
+INSERT INTO shopping_history VALUES('ghee',3,35);
+INSERT INTO shopping_history VALUES('bread',9,5);
+
+select product,sum(total) as total_price from(
+SELECT product,quantity,unit_price,quantity*unit_price as total from "PK_INEURON"."PUBLIC"."SHOPPING_HISTORY")
+group by product order by product;
+
+Task-2
+
+USE DATABASE PK_INEURON;
+create table phones (
+name varchar(20) not null unique,
+phone_number integer not null unique
+);
+create table calls(
+id integer not null,
+caller integer not null,
+callee integer not null,
+duration integer not null,
+unique(id)
+);
+insert into phones values('Jack',1234),
+('Lena',3333),
+('Mark',9999),
+('Anna',7582);
+insert into calls values(25,1234,7582,8),
+(7,9999,7582,1),
+(18,9999,3333,4),
+(2,7582,3333,3),
+(3,3333,1234,1),
+(21,3333,1234,1);
+
+CREATE TABLE CALLERS AS
+SELECT CALLER,DURATION FROM "PK_INEURON"."PUBLIC"."CALLS";
+CREATE TABLE CALLEES AS 
+SELECT CALLEE,DURATION FROM "PK_INEURON"."PUBLIC"."CALLS";
+
+
+SELECT DISTINCT NAME FROM (
+SELECT DISTINCT NAME,SUM(DURATION) OVER (PARTITION BY CALLEE) AS C1
+FROM "PK_INEURON"."PUBLIC"."PHONES" AS A
+LEFT JOIN "PK_INEURON"."PUBLIC"."CALLEES" AS B
+ON A.phone_number=B.callee
+UNION ALL
+SELECT DISTINCT NAME,SUM(DURATION) OVER (PARTITION BY CALLER) AS C1
+FROM "PK_INEURON"."PUBLIC"."PHONES" AS A
+LEFT JOIN "PK_INEURON"."PUBLIC"."CALLERS" AS C
+ON  A.phone_number=C.caller) GROUP BY NAME HAVING SUM(C1)>=10 ORDER BY NAME;
+
+
+
+
+Task-3
+
+USE PK_INEURON;
+CREATE TABLE TRANSATIONS(
+  AMOUNT INTEGER NOT NULL,
+  DATE date NOT NULL
+);
+
+create table transactions(
+amount integer not null,
+Date DATE not null
+);
+
+insert into transactions(amount,Date) Values (1000,'2020-01-06');
+insert into transactions(amount,Date) Values(-10,'2020-01-14');
+insert into transactions(amount,Date) Values(-75,'2020-01-20');
+insert into transactions(amount,Date) Values(-5,'2020-01-25');
+insert into transactions(amount,Date) Values(-4,'2020-01-29');
+insert into transactions(amount,Date) Values(2000,'2020-03-10');
+insert into transactions(amount,Date) Values(-75,'2020-03-12');
+insert into transactions(amount,Date) Values(-20,'2020-03-15');
+insert into transactions(amount,Date) Values(40,'2020-03-15');
+insert into transactions(amount,Date) Values(-50,'2020-03-17');
+insert into transactions(amount,Date) Values(200,'2020-10-10');
+insert into transactions(amount,Date) Values(-200,'2020-10-10');
+SELECT SUM(FINAL_AMOUNT) FROM (
+SELECT AMOUNT AS FINAL_AMOUNT FROM "PK_INEURON"."PUBLIC"."TRANSACTIONS" WHERE AMOUNT>0
+UNION ALL
+SELECT SUM(AMOUNT)-(12-COUNT(MONT))*5 AS FINAL_AMOUNT FROM
+(
+SELECT 
+CASE 
+WHEN C>=3 AND NEGATIVE_AMOUNT<=-100 THEN NEGATIVE_AMOUNT
+ELSE NEGATIVE_AMOUNT-5 END AS AMOUNT,
+MONT
+FROM (
+SELECT SUM(AMOUNT) AS NEGATIVE_AMOUNT,COUNT(*) AS C,MONT FROM (
+SELECT DISTINCT AMOUNT,DATE,EXTRACT(MONTH FROM Date) AS MONT
+ FROM "PK_INEURON"."PUBLIC"."TRANSACTIONS") WHERE AMOUNT<0 
+ GROUP BY MONT )));
